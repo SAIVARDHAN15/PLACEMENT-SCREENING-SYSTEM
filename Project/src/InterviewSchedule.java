@@ -15,4 +15,8 @@ class InterviewSchedule {
     public Date getInterviewDate() {
         return interviewDate;
     }
+    @Override
+    public String toString() {
+        return "Interview with " + company.getName() + " on " + interviewDate;
+    }
 }

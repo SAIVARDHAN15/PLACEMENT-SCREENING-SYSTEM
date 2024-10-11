@@ -1,220 +1,123 @@
+import java.sql.*;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Date;
 
-public class PlacementSystem extends Exception {
-    private List<JobPosting> jobPostings;
-    public Stack<JobPosting> recentJobPostings;
-    private List<Student> students;
-    private PriorityQueue<Student> studentQueue;
-    private Queue<Interview> interviewQueue;
-    private Company[] previousYearCompanies;
+public class PlacementSystem {
+    private final Connection connection;
 
-    public PlacementSystem() {
-        this.jobPostings = new ArrayList<>();
-        this.recentJobPostings = new Stack<>();
-        this.students = new ArrayList<>();
-        this.studentQueue = new PriorityQueue<>();
-        this.interviewQueue = new LinkedList<>();
-        this.previousYearCompanies = new Company[100]; // Assuming a max of 100 companies visited last year
-        initializePreviousYearCompanies();
+    public PlacementSystem(Connection connection) {
+        this.connection = connection;
     }
 
-    private void initializePreviousYearCompanies() {
-        // Example companies with package offered
-        // Initialize example companies visited last year
-        previousYearCompanies[0] = new Company("Google", 1200000, new Date(), Arrays.asList("Java", "Python", "Machine Learning"), "Software Engineer");
-        previousYearCompanies[1] = new Company("Microsoft", 1100000, new Date(), Arrays.asList("C++", "C#", "Web Development"), "Software Developer");
-        previousYearCompanies[2] = new Company("Amazon", 1150000, new Date(), Arrays.asList("Java", "Cloud Computing", "DevOps"), "Cloud Architect");
-        previousYearCompanies[3] = new Company("Apple", 1250000, new Date(), Arrays.asList("Swift", "iOS Development", "Objective-C"), "iOS Developer");
-        previousYearCompanies[4] = new Company("Facebook", 1180000, new Date(), Arrays.asList("Python", "Data Analysis", "Social Media"), "Data Scientist");
-        previousYearCompanies[5] = new Company("Netflix", 1120000, new Date(), Arrays.asList("Java", "Scala", "Streaming"), "Backend Developer");
-        previousYearCompanies[6] = new Company("Tesla", 1300000, new Date(), Arrays.asList("Embedded Systems", "AI", "Electric Vehicles"), "Embedded Software Engineer");
-        previousYearCompanies[7] = new Company("Uber", 1050000, new Date(), Arrays.asList("Python", "Node.js", "Mobile Development"), "Full Stack Developer");
-        previousYearCompanies[8] = new Company("Airbnb", 1080000, new Date(), Arrays.asList("React", "JavaScript", "Frontend Development"), "Frontend Developer");
-        previousYearCompanies[9] = new Company("IBM", 1000000, new Date(), Arrays.asList("Java", "Mainframe", "Artificial Intelligence"), "Software Engineer");
-        previousYearCompanies[10] = new Company("Intel", 980000, new Date(), Arrays.asList("C", "C++", "Hardware Design"), "Hardware Engineer");
-        previousYearCompanies[11] = new Company("Oracle", 1020000, new Date(), Arrays.asList("Java", "SQL", "Database Management"), "Database Administrator");
-        previousYearCompanies[12] = new Company("Salesforce", 1100000, new Date(), Arrays.asList("Salesforce CRM", "Apex", "Cloud Integration"), "Salesforce Developer");
-        previousYearCompanies[13] = new Company("Adobe", 1150000, new Date(), Arrays.asList("JavaScript", "UI/UX Design", "Adobe Creative Suite"), "UI/UX Designer");
-        previousYearCompanies[14] = new Company("Cisco", 980000, new Date(), Arrays.asList("Networking", "Security", "Cisco Products"), "Network Engineer");
-        previousYearCompanies[15] = new Company("VMware", 1050000, new Date(), Arrays.asList("Virtualization", "Cloud Computing", "VMware Products"), "Cloud Engineer");
-        previousYearCompanies[16] = new Company("PayPal", 1080000, new Date(), Arrays.asList("Java", "Python", "Payment Systems"), "Software Engineer");
-        previousYearCompanies[17] = new Company("HP Inc.", 950000, new Date(), Arrays.asList("Printing Technology", "IoT", "Hardware Development"), "Hardware Engineer");
-        previousYearCompanies[18] = new Company("Nvidia", 1150000, new Date(), Arrays.asList("CUDA", "Graphics Processing", "AI"), "GPU Engineer");
-        previousYearCompanies[19] = new Company("Sony", 1000000, new Date(), Arrays.asList("Game Development", "C#", "PlayStation"), "Game Developer");
+    // Method for filtering eligible students based on CGPA and quiz marks
+    public List<Student> filterEligibleStudents(JobPosting jobPosting) {
+        String sql = "SELECT * FROM students WHERE CGPA >= ? AND aptitude_score >= ?";
 
-    }
-    // Method to post a new job
-    public void postJob(JobPosting job) {
-        jobPostings.add(job);
-        recentJobPostings.push(job);
-        System.out.println("Job posted successfully: " + job.getJobTitle());
-    }
+        List<Student> eligibleStudents = new ArrayList<>();
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setDouble(1, jobPosting.getCGPACriteria());
+            stmt.setInt(2, 60);
 
-    // Method to register a student
-    public void registerStudent(Student student) {
-        students.add(student);
-        studentQueue.add(student);
-        System.out.println("Student registered successfully: " + student.getName());
-    }
-
-    // Method to filter eligible students for each job posting and schedule interviews
-    public void filterEligibleStudentsAndScheduleInterviews() {
-        for (JobPosting job : jobPostings) {
-            System.out.println("Job Title: " + job.getJobTitle());
-            System.out.println("Eligible Students:");
-
-            int availableSlots = job.getNumberOfSlots();
-            int count = 0;
-
-            for (Student student : students) {
-                if (count < availableSlots && isStudentEligible(student, job)) {
-                    System.out.println("- " + student.getName());
-                    // Schedule interview with a starting date (for example, today)
-                    scheduleInterview(student, job.getCompany(), new Date());
-                    count++;
-                }
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                Student student = new Student(
+                        rs.getString("name"),
+                        rs.getString("register_number"),
+                        rs.getDouble("CGPA"),
+                        Arrays.asList(rs.getString("skills").split(",")),
+                        rs.getInt("aptitude_score")
+                );
+                eligibleStudents.add(student);
             }
 
-            System.out.println();
-        }
-    }
+            //schedule Interview
 
-    // Helper method to check if a student is eligible for a job posting
-    private boolean isStudentEligible(Student student, JobPosting job) {
-        // Check if student's skills match required skills
-        Set<String> requiredSkills = new HashSet<>(job.getRequiredSkills());
-        Set<String> studentSkills = new HashSet<>(student.getSkills());
-
-        boolean skillsMatch = studentSkills.containsAll(requiredSkills);
-
-        // Check if student's quiz marks are sufficient
-        int requiredQuizMarks = 70; // Example threshold for quiz marks
-        boolean sufficientQuizMarks = student.getQuizMarks() >= requiredQuizMarks;
-
-        return skillsMatch && sufficientQuizMarks;
-    }
-
-    // Method to schedule an interview for a student with a job posting
-    private void scheduleInterview(Student student, Company company, Date interviewDate) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(interviewDate);
-
-        boolean conflictDetected = true;
-
-        while (conflictDetected) {
-            conflictDetected = false;
-            for (InterviewSchedule schedule : student.getInterviewSchedules()) {
-                if (schedule.getInterviewDate().equals(calendar.getTime())) {
-                    conflictDetected = true;
-                    calendar.add(Calendar.DAY_OF_YEAR, 1); // Move to the next day
-                    break;
-                }
+            for(Student student : eligibleStudents){
+                scheduleInterview(student, jobPosting);
             }
+
+
+        } catch (SQLException e) {
+            System.out.println("Error filtering eligible students: " + e.getMessage());
         }
-
-        // Schedule interview on the next available date
-        Date scheduledDate = calendar.getTime();
-        student.addInterviewSchedule(new InterviewSchedule(company, scheduledDate));
-        interviewQueue.add(new Interview(student, new JobPosting(company.getName(), company.getRole(), company.getRequiredSkills(), 0, company.getPackageOffered(), company), scheduledDate));
-        System.out.println("Interview scheduled for student " + student.getName() + " with company " + company.getName() + " on " + scheduledDate);
+        return eligibleStudents;
     }
 
-    public List<String> filterByPackage(double minPackage) {
-        return Arrays.stream(previousYearCompanies)
-                .filter(company -> company != null && company.getPackageOffered() >= minPackage)
-                .map(Company::getName)
-                .collect(Collectors.toList());
-    }
+    // Method to schedule interviews
+    public void scheduleInterview(Student student, JobPosting jobPosting) {
+        String sql = "INSERT INTO interview_schedules (student_id, job_posting_id, interview_date) VALUES (?, ?, ?)";
 
-    public List<String> filterBySkills(List<String> requiredSkills) {
-        return Arrays.stream(previousYearCompanies)
-                .filter(company -> company != null && company.getRequiredSkills().containsAll(requiredSkills))
-                .map(Company::getName)
-                .collect(Collectors.toList());
-    }
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            // Fetching student ID and job posting ID from their respective tables
+            int studentId = getStudentIdByRegisterNumber(student.getRegisterNumber());
+            int jobPostingId = getJobPostingIdByTitle(jobPosting.getJobTitle());
 
-    public List<String> filterByPackageAndSkills(double minPackage, List<String> requiredSkills) {
-        return Arrays.stream(previousYearCompanies)
-                .filter(company -> company != null && company.getPackageOffered() >= minPackage)
-                .filter(company -> company.getRequiredSkills().containsAll(requiredSkills))
-                .map(Company::getName)
-                .collect(Collectors.toList());
-    }
+            if (studentId == -1 || jobPostingId == -1) {
+                System.out.println("Error: Student or Job Posting not found.");
+                return;
+            }
 
-    // Method to sort companies based on package or specific skills or both
-    public void sortCompanies(int sortBy) {
-        Scanner sc = new Scanner(System.in);
-        switch (sortBy) {
-            case 1:
-                System.out.print("Enter the minimum package: ");
-                double minPackage = sc.nextInt();
-                System.out.println();
-                System.out.print("The companies are: ");
-                System.out.print(filterByPackage(minPackage));
-                System.out.println();
-                break;
-            case 2:
-                System.out.print("Enter the skills (comma separated): ");
-                String skills = sc.nextLine();
-                List<String> listOfSkills = new ArrayList<>(Arrays.asList(skills.split(",")));
-                System.out.println();
-                System.out.print("The companies are: ");
-                System.out.print(filterBySkills(listOfSkills));
-                System.out.println();
-                break;
-            case 3:
-                System.out.print("Enter the skills (comma separated): ");
-                String skillsToSort = sc.nextLine();
-                System.out.print("Enter the minimum package: ");
-                double minimumPack = sc.nextInt();
-                List<String> SkillsList = new ArrayList<>(Arrays.asList(skillsToSort.split(",")));
-                System.out.println();
-                System.out.print("The companies are: ");
-                System.out.print(filterByPackageAndSkills(minimumPack, SkillsList));
-                System.out.println();
-                break;
-            default:
-                System.out.println("Invalid sort option.");
-                break;
+            stmt.setInt(1, studentId);
+            stmt.setInt(2, jobPostingId);
+            stmt.setDate(3, new java.sql.Date(jobPosting.getCompany().getDateOfVisit().getTime()));
+
+            int rowsInserted = stmt.executeUpdate();
+            if (rowsInserted > 0) {
+                System.out.println("Interview scheduled successfully.");
+            }
+        } catch (SQLException e) {
+            System.out.println("Error scheduling interview: " + e.getMessage());
         }
     }
 
+    // Method to retrieve job posting ID by title
+    protected int getJobPostingIdByTitle(String jobTitle) {
+        String sql = "SELECT job_id FROM job_posting WHERE job_title = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, jobTitle);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("id");
+            }
+        } catch (SQLException e) {
+            System.out.println("Error fetching job posting ID: " + e.getMessage());
+        }
+        return -1;
+    }
+
+    // Method to retrieve student ID by register number
+    private int getStudentIdByRegisterNumber(String registerNumber) {
+        String sql = "SELECT id FROM students WHERE register_number = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, registerNumber);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("id");
+            }
+        } catch (SQLException e) {
+            System.out.println("Error fetching student ID: " + e.getMessage());
+        }
+        return -1;
+    }
+
+    // Method to display the interview schedules
     public void displayScheduledInterviews() {
-        System.out.println("Scheduled Interviews:");
-        while (!interviewQueue.isEmpty()) {
-            Interview interview = interviewQueue.poll();
-            System.out.println("Student: " + interview.getStudent().getName() +
-                    ", Company: " + interview.getJobPosting().getCompany().getName() +
-                    ", Role: " + interview.getJobPosting().getJobTitle() +
-                    ", Date: " + interview.getInterviewDate());
-        }
-    }
+        String sql = "SELECT s.name, j.job_title, i.interview_date " +
+                "FROM interview_schedules i " +
+                "JOIN students s ON i.student_id = s.id " +
+                "JOIN job_posting j ON i.job_posting_id = j.id";
 
-    // Method to search for a package offered by a company based on previous year's data
-    public double searchPackageByCompanyName(String companyName) {
-        for (Company company : previousYearCompanies) {
-            if (company != null && company.getName().equals(companyName)) {
-                return company.getPackageOffered();
-            }
-        }
-        return -1; // Company not found
-    }
+        try (Statement stmt = connection.createStatement()) {
+            ResultSet rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+                String studentName = rs.getString("name");
+                String jobTitle = rs.getString("job_title");
+                Date interviewDate = rs.getDate("interview_date");
 
-    public List<String> searchStacksByCompanyName(String companyName) {
-        for (Company company : previousYearCompanies) {
-            if (company != null && company.getName().equals(companyName)) {
-                return company.getRequiredSkills();
+                System.out.println("Student: " + studentName + " | Job Title: " + jobTitle + " | Interview Date: " + interviewDate);
             }
+        } catch (SQLException e) {
+            System.out.println("Error displaying interview schedules: " + e.getMessage());
         }
-        return new ArrayList<>(); // Company not found
-    }
-    public String searchRoleByCompanyName(String companyName) {
-        for (Company company : previousYearCompanies) {
-            if (company != null && company.getName().equals(companyName)) {
-                return company.getRole();
-            }
-        }
-        return " "; // Company not found
     }
 }
