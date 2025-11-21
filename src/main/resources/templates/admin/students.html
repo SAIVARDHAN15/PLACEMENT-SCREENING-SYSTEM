@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Students</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+<div class="container">
+    <h1>Registered Students</h1>
+    <table class="styled-table">
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Register Number</th>
+            <th>CGPA</th>
+            <th>Skills</th>
+            <th>Aptitude Score</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="student : ${students}">
+            <td th:text="${student.name}"></td>
+            <td th:text="${student.registerNumber}"></td>
+            <td th:text="${student.cgpa}"></td>
+            <td th:text="${student.skills}"></td>
+            <td th:text="${student.aptitudeScore}"></td>
+        </tr>
+        </tbody>
+    </table>
+    <div style="text-align: center; margin-top: 30px;">
+        <a th:href="@{/admin}" class="back-link">Back to Admin Dashboard</a>
+    </div>
+</div>
+</body>
+</html>

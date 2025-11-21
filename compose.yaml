@@ -1,0 +1,25 @@
+version: '3.8'
+
+# Defines the services (containers) for your application.
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: placement-system-db
+    restart: always
+    environment:
+      POSTGRES_DB: placement_screening_system
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Vardhan@2003
+    ports:
+      - "5432:5432"
+    volumes:
+      # Mounts the init script to create the schema.
+      - ./init-scripts:/docker-entrypoint-initdb.d
+      # Tells the service to USE the named volume 'postgres_data'.
+      - postgres_data:/var/lib/postgresql/data
+
+# --- THIS IS THE MISSING PART ---
+# Top-level declaration for all named volumes used in this compose file.
+volumes:
+  postgres_data:
+  # An empty declaration here is enough. Docker will manage this volume.

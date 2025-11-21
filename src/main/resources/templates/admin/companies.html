@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Companies</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+<div class="container">
+    <h1>Registered Companies</h1>
+    <table class="styled-table">
+        <thead>
+        <tr>
+            <th>Company Name</th>
+            <th>Date of Visit</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="company : ${companies}">
+            <td th:text="${company.name}"></td>
+            <td th:text="${#dates.format(company.dateOfVisit, 'dd-MM-yyyy')}"></td>
+            <td class="actions"><a th:href="@{'/company/' + ${company.id}}">View Dashboard</a></td>
+        </tr>
+        </tbody>
+    </table>
+    <div style="text-align: center; margin-top: 30px;">
+        <a th:href="@{/admin}" class="back-link">Back to Admin Dashboard</a>
+    </div>
+</div>
+</body>
+</html>

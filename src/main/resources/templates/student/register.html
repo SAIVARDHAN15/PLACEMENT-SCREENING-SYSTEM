@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Register Student</title>
+</head>
+<body>
+<h1>Student Registration</h1>
+<form th:action="@{/student/register}" th:object="${student}" method="post">
+    <div><label>Name: <input type="text" th:field="*{name}" required/></label></div>
+    <div><label>Register Number: <input type="text" th:field="*{registerNumber}" required/></label></div>
+    <div><label>CGPA: <input type="number" step="0.01" th:field="*{cgpa}" required/></label></div>
+    <div><label>Skills (comma-separated): <input type="text" th:field="*{skills}"/></label></div>
+    <div><label>Aptitude Score: <input type="number" th:field="*{aptitudeScore}" required/></label></div>
+    <button type="submit">Register</button>
+</form>
+</body>
+</html>

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Company Dashboard</title>
+</head>
+<body>
+<h1 th:text="${company.name} + ' Dashboard'">Company Dashboard</h1>
+<a th:href="@{'/company/' + ${company.id} + '/post-job'}">Post a New Job</a>
+
+<h2>Posted Jobs</h2>
+<ul>
+    <li th:each="job : ${company.jobPostings}">
+        <h3 th:text="${job.jobTitle}">Job Title</h3>
+        <h4>Applicants</h4>
+        <ul>
+            <li th:each="student : ${job.applicants}" th:text="${student.name} + ' (' + ${student.registerNumber} + ')'"></li>
+        </ul>
+    </li>
+</ul>
+</body>
+</html>

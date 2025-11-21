@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+<div class="container">
+    <h1>Admin Dashboard</h1>
+    <ul class="dashboard-list">
+        <li><a th:href="@{/admin/students}">View All Students</a></li>
+        <li><a th:href="@{/admin/companies}">View All Companies</a></li>
+        <li><a th:href="@{/admin/jobs}">View All Job Postings</a></li>
+    </ul>
+    <div style="text-align: center; margin-top: 30px;">
+        <a th:href="@{/}" class="back-link">Back to Home</a>
+    </div>
+</div>
+</body>
+</html>

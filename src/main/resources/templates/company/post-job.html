@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post Job</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+<div class="container">
+    <h1>Post a New Job</h1>
+    <form th:action="@{'/company/' + ${companyId} + '/post-job'}" th:object="${jobPosting}" method="post">
+        <div class="form-group"><label>Job Title: <input type="text" th:field="*{jobTitle}" required/></label></div>
+        <div class="form-group"><label>Description: <textarea th:field="*{jobDescription}"></textarea></label></div>
+        <div class="form-group"><label>Required Skills: <input type="text" th:field="*{requiredSkills}"/></label></div>
+        <div class="form-group"><label>Number of Slots: <input type="number" th:field="*{numberOfSlots}" required/></label></div>
+        <div class="form-group"><label>Package Offered (LPA): <input type="number" step="0.01" th:field="*{packageOffered}" required/></label></div>
+        <div class="form-group"><label>CGPA Criteria: <input type="number" step="0.01" th:field="*{cgpaCriteria}" required/></label></div>
+        <button type="submit" class="btn">Post Job</button>
+    </form>
+</div>
+</body>
+</html>

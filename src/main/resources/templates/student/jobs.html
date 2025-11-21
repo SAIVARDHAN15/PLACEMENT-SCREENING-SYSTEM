@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Available Jobs</title>
+</head>
+<body>
+<h1>Available Job Postings</h1>
+<div th:each="job : ${jobPostings}">
+    <h2 th:text="${job.jobTitle} + ' at ' + ${job.company.name}">Job Title</h2>
+    <p th:text="'Description: ' + ${job.jobDescription}"></p>
+    <p th:text="'Skills: ' + ${job.requiredSkills}"></p>
+    <p th:text="'Package: ' + ${job.packageOffered}"></p>
+    <form th:action="@{/student/apply}" method="post">
+        <input type="hidden" name="jobId" th:value="${job.id}"/>
+        <label>Your Register Number: <input type="text" name="registerNumber" required/></label>
+        <button type="submit">Apply</button>
+    </form>
+    <hr/>
+</div>
+</body>
+</html>
